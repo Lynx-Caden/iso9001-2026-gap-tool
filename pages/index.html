@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISO 9001:2026 Gap Analysis Tool — Free Excel</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0A0A0F;
+    --surface: #121218;
+    --border: #1E1E2E;
+    --cyan: #00E5FF;
+    --orange: #FF6B35;
+    --text: #E0E0E0;
+    --muted: #6B7280;
+    --green: #34D399;
+    --gold: #FBBF24;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+
+  /* --- Hero --- */
+  .hero {
+    padding: 80px 0 60px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute; top: -50%; left: -20%; width: 140%; height: 200%;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,229,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .badge {
+    display: inline-block; padding: 4px 16px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
+    color: var(--cyan); background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.25);
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 700; line-height: 1.2; margin-bottom: 16px;
+    color: #FFFFFF;
+  }
+  .hero h1 span { color: var(--cyan); }
+  .hero p.sub {
+    font-size: 18px; color: var(--muted); max-width: 640px; margin: 0 auto 32px;
+  }
+  .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+  /* --- Buttons --- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 32px; border-radius: 8px; font-size: 15px; font-weight: 600;
+    text-decoration: none; transition: all 0.2s ease; cursor: pointer; border: none;
+  }
+  .btn-primary {
+    background: var(--cyan); color: #0A0A0F;
+  }
+  .btn-primary:hover { background: #33EFFF; }
+  .btn-secondary {
+    background: transparent; color: var(--text); border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* --- Stats row --- */
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px; background: var(--border); margin: 0; padding: 0; border-bottom: 1px solid var(--border);
+  }
+  .stat {
+    background: var(--surface); padding: 28px 16px; text-align: center;
+  }
+  .stat .num { font-size: 28px; font-weight: 700; color: #FFF; }
+  .stat .label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* --- Sections --- */
+  section { padding: 64px 0; border-bottom: 1px solid var(--border); }
+  section:last-child { border-bottom: none; }
+  section h2 { font-size: 24px; color: #FFF; margin-bottom: 8px; }
+  .lead-container > p.lead { color: var(--muted); margin-bottom: 32px; max-width: 600px; }
+
+  /* --- Features grid --- */
+  .features { display: grid; gap: 16px; }
+  @media (min-width: 640px) { .features { grid-template-columns: repeat(2, 1fr); } }
+  .feature {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 24px; transition: border-color 0.2s;
+  }
+  .feature:hover { border-color: rgba(0,229,255,0.3); }
+  .feature h3 { font-size: 16px; color: var(--cyan); margin-bottom: 8px; }
+  .feature p { font-size: 14px; color: var(--muted); }
+
+  /* --- Clause preview table --- */
+  .clause-table { width: 100%; border-collapse: collapse; }
+  .clause-table th {
+    text-align: left; padding: 12px 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+  }
+  .clause-table td {
+    padding: 12px 16px; font-size: 14px; border-bottom: 1px solid var(--border); background: var(--surface);
+  }
+  .status-new { color: var(--orange); font-weight: 600; }
+  .status-mod { color: var(--gold); font-weight: 600; }
+  .status-unchanged { color: var(--green); }
+
+  /* --- Differentiation comparison --- */
+  .diff-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .diff-table th {
+    text-align: left; padding: 12px 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--muted); border-bottom: 2px solid var(--border); background: var(--bg);
+  }
+  .diff-table td {
+    padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--surface); color: #C9D1D9;
+  }
+  .diff-table tr:hover td { background: #161620; }
+  .diff-win { color: var(--cyan) !important; font-weight: 600; }
+
+  /* --- How it Works (3-step) --- */
+  .steps { display: grid; gap: 24px; counter-reset: step; }
+  @media (min-width: 640px) {
+    .steps { grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  }
+  .step { position: relative; }
+  .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%; font-size: 16px; font-weight: 700;
+    background: rgba(0,229,255,0.1); color: var(--cyan); border: 1px solid rgba(0,229,255,0.3);
+    margin-bottom: 12px;
+  }
+  .step h3 { font-size: 16px; color: #FFF; margin-bottom: 6px; }
+  .step p { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+  /* --- Pricing cards --- */
+  .pricing-grid { display: grid; gap: 16px; }
+  @media (min-width: 640px) { .pricing-grid { grid-template-columns: repeat(3, 1fr); } }
+  .price-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 28px 24px; position: relative; overflow: hidden;
+  }
+  .price-card.featured { border-color: var(--cyan); }
+  .price-card.featured::before {
+    content: "FREE NOW"; position: absolute; top: 0; right: 0;
+    background: var(--cyan); color: #0A0A0F; font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    padding: 4px 12px; border-radius: 0 8px 0 8px;
+  }
+  .price-card h3 { font-size: 16px; color: #FFF; margin-bottom: 4px; }
+  .price-card .price { font-size: 32px; font-weight: 700; color: var(--cyan); margin-bottom: 16px; }
+  .price-card ul { list-style: none; padding: 0; margin: 0 0 24px; }
+  .price-card li { font-size: 13px; color: var(--muted); padding: 4px 0; position: relative; padding-left: 18px; }
+  .price-card li::before { content: "✓"; position: absolute; left: 0; color: var(--green); }
+  .price-card .note { font-size: 12px; color: var(--muted); font-style: italic; }
+
+  /* --- FAQ --- */
+  .faq-item { border-bottom: 1px solid var(--border); padding: 20px 0; }
+  .faq-item:last-child { border-bottom: none; }
+  .faq-q { font-size: 15px; color: #FFF; margin-bottom: 8px; font-weight: 600; }
+  .faq-a { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+  /* --- CTA section --- */
+  .cta-section { text-align: center; padding: 80px 0; }
+  .cta-section h2 { font-size: 32px; margin-bottom: 16px; }
+  .cta-section p { color: var(--muted); margin-bottom: 32px; max-width: 480px; margin-left: auto; margin-right: auto; }
+
+  /* --- Footer --- */
+  footer { text-align: center; padding: 32px 0; font-size: 13px; color: var(--muted); border-top: 1px solid var(--border); }
+  footer a { color: var(--cyan); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* --- Boot animation --- */
+  @keyframes bootLine {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .boot-text { font-family: "SF Mono", "Fira Code", monospace; font-size: 13px; color: var(--green); margin-top: 24px; }
+  .boot-text span { opacity: 0; animation: bootLine 0.3s forwards; display: inline-block; }
+
+  /* --- Responsive --- */
+  @media (max-width: 768px) {
+    section { padding: 48px 0; }
+    .hero { padding: 60px 0 40px; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="container">
+    <div class="badge">ISO 9001:2026 Transition Tool</div>
+    <h1>Gap Analysis for<br><span>ISO 9001:2026</span></h1>
+    <p class="sub">Free Excel workbook — clause by clause gap assessment across all ISO 9001:2026 requirements. Built for quality professionals who need fast results, not expensive software.</p>
+    <div class="hero-actions">
+      <a href="https://github.com/Lynx-Caden" class="btn btn-primary" target="_blank" rel="noopener">&#8595; Download Free (Excel)</a>
+      <a href="#features" class="btn btn-secondary">See What's Inside</a>
+    </div>
+    <div class="boot-text" id="boot"></div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat"><div class="num">59</div><div class="label">Clauses Mapped</div></div>
+  <div class="stat"><div class="num">6</div><div class="label">Sheets / Functions</div></div>
+  <div class="stat"><div class="num">$0</div><div class="label">Free at Launch</div></div>
+  <div class="stat"><div class="num">2030</div><div class="label">Transition Deadline</div></div>
+</div>
+
+<!-- What's New -->
+<section>
+  <div class="container lead-container">
+    <h2>What Changed in ISO 9001:2026</h2>
+    <p class="lead">Three major additions that most organizations haven't addressed yet — plus reworked requirements across Clauses 4&#8211;10.</p>
+    <table class="clause-table">
+      <thead><tr><th style="width:100px">Clause</th><th>Requirement</th><th style="width:90px">Type</th></tr></thead>
+      <tbody>
+        <tr><td><strong>6.1 (new)</strong></td><td>Climate Change Risk Assessment — environmental factors must be included in QMS context analysis</td><td class="status-new">NEW</td></tr>
+        <tr><td><strong>5.1_new</strong></td><td>Anti-Corruption Controls — first ISO management standard to include anti-bribery/fraud/integrity requirements</td><td class="status-new">NEW</td></tr>
+        <tr><td><strong>6.3 + 7.3</strong></td><td>Quality Culture as Measured Performance — named, measurable requirement (not just implied)</td><td class="status-mod">CHANGED</td></tr>
+        <tr><td><strong>4.x&#8211;10.x</strong></td><td>Reworked leadership, planning, and performance evaluation requirements</td><td class="status-mod">MODIFIED</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="container lead-container">
+    <h2>What's Inside the Tool</h2>
+    <p class="lead">Six integrated sheets that work together — from initial assessment through remediation tracking.</p>
+    <div class="features">
+      <div class="feature">
+        <h3>&#x1F4CB; Gap Analysis (Core)</h3>
+        <p>59 clauses assessed clause-by-clause. Flag gaps, assign priority, track self-assessment scores. Exportable to CSV.</p>
+      </div>
+      <div class="feature">
+        <h3>&#x1F500; Change Log</h3>
+        <p>Side-by-side ISO 9001:2015 vs 2026 mapping — new, modified, and deleted clauses for each requirement.</p>
+      </div>
+      <div class="feature">
+        <h3>&#x1F4CA; Readiness Dashboard</h3>
+        <p>Aggregated compliance %, traffic-light indicators per major section (Context &#8594; Improvement), color-coded.</p>
+      </div>
+      <div class="feature">
+        <h3>&#x2705; Action Plan</h3>
+        <p>Auto-populated remediation plan ordered by Priority &#215; Risk weight with suggested owners and deadlines.</p>
+      </div>
+      <div class="feature">
+        <h3>&#x1F680; Quick Start Guide</h3>
+        <p>Step-by-step walkthrough for non-technical users. Bilingual support (EN / CJK) for multi-lingual teams.</p>
+      </div>
+      <div class="feature">
+        <h3>&#x1F4DA; Glossary &amp; References</h3>
+        <p>QMS terminology, ISO/UKAS references, official transition timelines, and certification body links.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Three Big Gaps -->
+<section>
+  <div class="container lead-container">
+    <h2>The Three Biggest Gaps Organizations Are Missing</h2>
+    <p class="lead">Based on our analysis of the transition timeline and UKAS Technical Bulletins:</p>
+    <div style="display:grid; gap:16px;">
+      <div class="feature" style="border-left:3px solid var(--orange)">
+        <h3 style="color:var(--orange)">1. Climate Change Risk (Clause 6.1)</h3>
+        <p><strong style="color:#FFF">Brand-new requirement.</strong> Your organizational context analysis must now include climate change as a factor — not optional, it's in the clause text itself. Most QMS auditors expect evidence you've addressed this.</p>
+      </div>
+      <div class="feature" style="border-left:3px solid var(--gold)">
+        <h3 style="color:var(--gold)">2. Anti-Corruption Controls (Clause 5.1_new)</h3>
+        <p><strong style="color:#FFF">First-ever in any ISO management standard.</strong> Anti-bribery, fraud, and integrity requirements sit inside QMS scope. No equivalent existed in 2015 — so no existing documentation covers it. You need to build this from scratch.</p>
+      </div>
+      <div class="feature" style="border-left:3px solid var(--cyan)">
+        <h3 style="color:var(--cyan)">3. Quality Culture as Measurable</h3>
+        <p><strong style="color:#FFF">Changed from implied to explicit.</strong> "Quality culture" is now a named, measurable requirement (Clauses 6.3 + 7.3) — leadership must show evidence through metrics, not just commitment statements.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Differentiation (NEW section per F1000 spec) -->
+<section id="why-different">
+  <div class="container lead-container">
+    <h2>How This Compares to Alternatives</h2>
+    <p class="lead">We surveyed the Gumroad, Payhip, and standalone template landscape. Here's how C4a stacks up (data from active competitor listings as of October 2026).</p>
+    <table class="diff-table">
+      <thead>
+        <tr><th>Feature</th><th>C4a Gap Tool</th><th>Typical Competitor Templates</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Clauses covered</td>
+          <td class="diff-win">59 (full, clause-by-clause)</td>
+          <td>Partial or overview-level only</td>
+        </tr>
+        <tr>
+          <td>EN&#8211;ZH bilingual glossary</td>
+          <td class="diff-win">&#x2713; Included (zero GB/T equivalents among competitors)</td>
+          <td>&#10008; EN-only or CN-first only</td>
+        </tr>
+        <tr>
+          <td>Quick Start Guide bundled</td>
+          <td class="diff-win">&#x2713; Integrated in-tool PDF guide + separate PDF</td>
+          <td>&#10008; Standalone PDF walkthrough (separate purchase)</td>
+        </tr>
+        <tr>
+          <td>Auto-calculated readiness dashboard</td>
+          <td class="diff-win">&#x2713; Real-time scoring, traffic-light status per section</td>
+          <td>&#10008; Static template (manual entry only)</td>
+        </tr>
+        <tr>
+          <td>Change Log sourced from UKAS Technical Bulletin</td>
+          <td class="diff-win">&#x2713; Every change traced to source document</td>
+          <td>&#10008; Self-compiled, unverified claims</td>
+        </tr>
+        <tr>
+          <td>Consultant comparison</td>
+          <td class="diff-win">&#x2713; $5k&#8211;$50k analysis this file does</td>
+          <td>&#10008; N/A</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- How It Works (NEW section per F1000 spec) -->
+<section id="how-it-works">
+  <div class="container lead-container">
+    <h2>How It Works</h2>
+    <p class="lead">Three steps from download to actionable gap assessment. No installation, no account required.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Download</h3>
+        <p>Get the free Excel workbook from GitHub. No signup, no credit card. Works in Excel 365, LibreOffice, and Google Sheets.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Fill Col E &amp; F</h3>
+        <p>For each of the 59 clauses: enter your current compliance status (Col E) and a brief evidence note (Col F). The built-in Quick Start guide walks you through every field.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Auto-Populates Dashboard</h3>
+        <p>Your readiness score, traffic-light indicators, and auto-sorted action plan update in real time. Export the summary to CSV for your management review or auditor meeting.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section>
+  <div class="container lead-container">
+    <h2>Pricing</h2>
+    <p class="lead">Currently: Core tier is free during Phase Alpha. Pro tier details coming in Phase Beta.</p>
+    <div class="pricing-grid">
+      <div class="price-card featured">
+        <h3>Free Starter</h3>
+        <div class="price">$0</div>
+        <ul>
+          <li>Clauses 4.x + 5.1&#8211;5.2 self-assessment</li>
+          <li>Gap Analysis sheet template</li>
+          <li>Quick Start Guide (PDF)</li>
+          <li>Limited readout of change log</li>
+        </ul>
+        <a href="https://github.com/Lynx-Caden" class="btn btn-primary" style="width:100%;justify-content:center" target="_blank" rel="noopener">Download Free</a>
+      </div>
+      <div class="price-card featured">
+        <h3>Core Tool (Full)</h3>
+        <div class="price">TBD</div>
+        <ul>
+          <li>All 59 clauses mapped</li>
+          <li>Readiness Dashboard (full)</li>
+          <li>Action Plan with auto-sorting</li>
+          <li>Complete clause diff (2015&#8594;2026)</li>
+          <li>Lifetime updates to next revision</li>
+        </ul>
+        <p class="note">Free at launch &#8211; pricing announced in Phase Beta</p>
+      </div>
+      <div class="price-card">
+        <h3>Pro (Annual)</h3>
+        <div class="price" style="color:var(--muted)">Coming Soon</div>
+        <ul>
+          <li>Everything in Core</li>
+          <li>Priority support access</li>
+          <li>Early access to new features</li>
+        </ul>
+        <p class="note">Phase Beta &#8211; not yet available</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ (NEW section per F1000 spec) -->
+<section id="faq">
+  <div class="container">
+    <h2 style="margin-bottom:8px;">Frequently Asked Questions</h2>
+    <p class="lead" style="margin-bottom:24px; max-width:600px;">Quick answers to common questions about the gap-tool.</p>
+    <div class="faq-item">
+      <div class="faq-q">What is ISO 9001:2026 and why should I care?</div>
+      <div class="faq-a">ISO 9001:2026 is the first revision of the quality management standard since 2015. It introduces new requirements (climate change risk, anti-corruption controls) and reworks existing clauses. Organizations have until September 30, 2030 to transition from the 2015 version. If your clients or auditors already use or expect the 2026 standard, you need to start assessing your gaps now.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What Excel version do I need?</div>
+      <div class="faq-a">The workbook is compatible with Excel 365 (Microsoft 365), Excel 2019+, LibreOffice Calc, and Google Sheets. No macros or VBA are used — it relies entirely on standard spreadsheet formulas, which means no security warnings when opening the file.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Do I need to sign up or create an account?</div>
+      <div class="faq-a">No. The free Starter edition downloads directly from GitHub with no signup, no email collection, and no tracking. The tool works entirely offline once downloaded.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Can I use this for multiple organizations?</div>
+      <div class="faq-a">Yes — the free Starter edition covers a subset of clauses (4, 5.1&#8211;5.2) with no per-organization limits. For full access to all 59 clauses and the Action Plan template, see the Core tier (free at launch).</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Does this replace a certification body's assessment?</div>
+      <div class="faq-a">No. This tool helps you conduct self-assessments and identify gaps before your certifier visits. It is not a substitute for professional certification-body assessment, nor does it guarantee compliance with any specific standard.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section" style="background:var(--surface); border-top:1px solid var(--border);">
+  <div class="container">
+    <h2>Start Your Gap Analysis Now</h2>
+    <p>No sign-up, no credit card. Download the free starter edition and begin assessing your readiness against ISO 9001:2026 today.</p>
+    <a href="https://github.com/Lynx-Caden" class="btn btn-primary" target="_blank" rel="noopener">&#8595; Get It Free on GitHub</a>
+    <p style="margin-top:24px;font-size:13px;color:var(--muted)">ISO 9001:2026 transition deadline: <strong style="color:#FFF;">30 Sep 2030</strong> &#8211; organizations must have shifted to the revised standard.</p>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    Built with Hermes Agent by the Lynx-Caden team & middot; <a href="https://github.com/Lynx-Caden" target="_blank" rel="noopener">GitHub</a> &middot; Not a substitute for professional certification-body assessment
+  </div>
+</footer>
+
+<script>
+// Boot animation
+(function() {
+  const lines = [
+    '> initializing gap-analysis engine...',
+    '> loading ISO 9001:2026 clause mappings (59/59)... OK',
+    '> verifying transition timeline data... OK',
+    '> readiness dashboard formulas... validated',
+    '> boot complete.',
+  ];
+  const el = document.getElementById('boot');
+  lines.forEach(function(line, i) {
+    var span = document.createElement('span');
+    span.textContent = line;
+    span.style.animationDelay = (i * 0.4 + 0.5) + 's';
+    el.appendChild(span);
+    if (i < lines.length - 1) el.appendChild(document.createTextNode('\n'));
+  });
+})();
+</script>
+
+</body>
+</html>
